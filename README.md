@@ -516,9 +516,10 @@ MIT License - see LICENSE file for details
 
 ## Credits
 
-Created by Shahzaib Daniel
+Created by [Shahzaib Daniel](https://github.com/shezy26)
 
 ## Support
 
-- 🐛 Issues: [GitHub Issues](https://github.com/YOUR_USERNAME/bladevalidator/issues)
-- 📖 Docs: [Full Documentation](https://github.com/YOUR_USERNAME/bladevalidator)
+- 📧 Email: engrsk60@gmail.com
+- 🐛 Issues: [GitHub Issues](https://github.com/shezy26/bladevalidator/issues)
+- 📖 Documentation: [GitHub Repository](https://github.com/shezy26/bladevalidator)
