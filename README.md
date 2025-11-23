@@ -1,10 +1,14 @@
 # BladeValidator
 
+[![Latest Version](https://img.shields.io/packagist/v/bladevalidator/bladevalidator.svg?style=flat-square)](https://packagist.org/packages/bladevalidator/bladevalidator)
+[![Total Downloads](https://img.shields.io/packagist/dt/bladevalidator/bladevalidator.svg?style=flat-square)](https://packagist.org/packages/bladevalidator/bladevalidator)
+[![License](https://img.shields.io/packagist/l/bladevalidator/bladevalidator.svg?style=flat-square)](https://packagist.org/packages/bladevalidator/bladevalidator)
+
 Live form validation for Laravel Blade templates without requiring Vue, React, Alpine.js, or build tools.
 
 ## Features
 
-- ✨ **Zero Build Tools** - Just include a `<script>` tag
+- ✨ **Zero Build Tools** - Just include a Blade directive
 - 🚀 **Laravel Native** - Uses your existing FormRequest classes
 - 🎨 **Framework Agnostic** - Auto-detects Bootstrap & Tailwind
 - 💪 **Fully Featured** - Debouncing, callbacks, custom styling
@@ -27,21 +31,36 @@ php artisan vendor:publish --tag=bladevalidator-assets
 
 This will copy the JavaScript file to `public/vendor/bladevalidator/`
 
-### Step 3: (Optional) Exclude CSRF for Validation Endpoint
+### Step 3: Add CSRF Exception
 
-Add to `bootstrap/app.php`:
+**For Laravel 11 & 12** - Add to `bootstrap/app.php`:
 
 ```php
 return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->validateCsrfTokens(except: [
             '/bladevalidator/validate',
         ]);
     })
-    // ... rest of config
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
 ```
 
-> **Note:** In production, the JavaScript automatically sends the CSRF token, but excluding the endpoint prevents issues during development.
+**For Laravel 9 & 10** - Add to `app/Http/Middleware/VerifyCsrfToken.php`:
+
+```php
+protected $except = [
+    '/bladevalidator/validate',
+];
+```
+
+> **Note:** The JavaScript automatically sends CSRF tokens. This exception just ensures smooth validation during live field checks.
 
 ## Quick Start
 
@@ -115,14 +134,13 @@ class StoreUserRequest extends FormRequest
         <button type="submit" class="btn btn-primary">Register</button>
     </form>
 
-    <!-- Include BladeValidator -->
-    <script src="{{ asset('vendor/bladevalidator/bladevalidator.min.js') }}"></script>
-
-    <!-- Initialize with Blade Directive -->
+    <!-- Initialize BladeValidator (JavaScript auto-included!) -->
     @bladeValidator('App\Http\Requests\StoreUserRequest', '#registrationForm')
 </body>
 </html>
 ```
+
+**That's it!** No need to manually include `<script>` tags - the directive handles everything automatically.
 
 ### 3. Handle Form Submission (Your Controller)
 
@@ -208,7 +226,7 @@ BladeValidator automatically detects and adapts to your CSS framework.
 ```html
 <div class="mb-4">
   <input type="text" name="email" class="border rounded px-3 py-2" />
-  <!-- Error paragraph auto-created -->
+  <!-- Error paragraph auto-created with classes: text-red-500 text-sm mt-1 -->
 </div>
 ```
 
@@ -216,7 +234,7 @@ BladeValidator automatically detects and adapts to your CSS framework.
 
 - Adds `border-red-500` class on error
 - Adds `border-green-500` class on success
-- Creates `<p class="text-red-500 text-sm mt-1">` for errors
+- Auto-creates `<p class="text-red-500 text-sm mt-1">` for errors
 
 ### Custom / No Framework
 
@@ -327,6 +345,29 @@ BladeValidator.init('#myForm', {
 4. **Form Submission**: When submitted, the form goes through normal Laravel validation via your FormRequest
 5. **Your Controller**: Uses `$request->validated()` as usual - no changes needed!
 
+## Platform Support
+
+### Windows
+
+```bash
+composer require bladevalidator/bladevalidator
+php artisan vendor:publish --tag=bladevalidator-assets
+```
+
+### macOS
+
+```bash
+composer require bladevalidator/bladevalidator
+php artisan vendor:publish --tag=bladevalidator-assets
+```
+
+### Linux
+
+```bash
+composer require bladevalidator/bladevalidator
+php artisan vendor:publish --tag=bladevalidator-assets
+```
+
 ## Requirements
 
 - PHP 8.0+
@@ -338,10 +379,6 @@ BladeValidator.init('#myForm', {
 - Firefox (latest)
 - Safari (latest)
 - Any modern browser with ES6 support
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Troubleshooting
 
@@ -367,8 +404,16 @@ Open browser DevTools (F12) and check the Console tab for errors.
 
 **3. Verify Route is Registered**
 
-```bash
+**Windows:**
+
+```powershell
 php artisan route:list | findstr bladevalidator
+```
+
+**macOS/Linux:**
+
+```bash
+php artisan route:list | grep bladevalidator
 ```
 
 You should see:
@@ -401,24 +446,17 @@ public function rules(): array
 
 ### Error: "Request class not found"
 
-Make sure you're using the correct namespace with double backslashes:
+Make sure you're using the correct namespace:
 
 ```blade
-✗ Wrong: @bladeValidator('App\Http\Requests\StoreUserRequest', '#myForm')
 ✓ Correct: @bladeValidator('App\Http\Requests\StoreUserRequest', '#myForm')
 ```
 
-Note: In Blade, single backslashes work fine. The directive handles escaping automatically.
+The Blade directive handles escaping automatically.
 
 ### Error: "419 Page Expired"
 
-This means CSRF validation is failing. Add the exception in `bootstrap/app.php`:
-
-```php
-$middleware->validateCsrfTokens(except: [
-    '/bladevalidator/validate',
-]);
-```
+This means CSRF validation is failing. Make sure you added the exception as shown in Step 3 of installation.
 
 ### Validation works but errors don't show?
 
@@ -464,67 +502,13 @@ Open an issue on GitHub with:
 
 - Laravel version (`php artisan --version`)
 - PHP version (`php --version`)
+- Operating system
 - Browser console errors
 - Network tab showing the validation request
 
-```
+## Contributing
 
----
-
-## Step 9: Create a License File
-
-**Create: `bladevalidator/LICENSE`**
-```
-
-MIT License
-
-Copyright (c) 2025 Shahzaib Daniel
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-```
-
----
-
-## Final Package Structure
-
-Your package should now look like this:
-```
-
-bladevalidator/
-├── src/
-│ ├── BladeValidatorServiceProvider.php
-│ ├── BladeDirective.php
-│ └── Http/
-│ └── Controllers/
-│ └── ValidationController.php
-├── resources/
-│ └── js/
-│ ├── bladevalidator.js
-│ └── bladevalidator.min.js
-├── routes/
-│ └── web.php
-├── composer.json
-├── README.md
-├── CHANGELOG.md
-├── LICENSE
-└── minify.php
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
@@ -536,6 +520,5 @@ Created by Shahzaib Daniel
 
 ## Support
 
-- 📧 Email: engrsk60@gmail.com
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/bladevalidator/issues)
-- 📖 Docs: [Full Documentation](https://github.com/yourusername/bladevalidator)
+- 🐛 Issues: [GitHub Issues](https://github.com/YOUR_USERNAME/bladevalidator/issues)
+- 📖 Docs: [Full Documentation](https://github.com/YOUR_USERNAME/bladevalidator)
