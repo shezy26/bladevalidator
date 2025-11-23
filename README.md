@@ -31,37 +31,6 @@ php artisan vendor:publish --tag=bladevalidator-assets
 
 This will copy the JavaScript file to `public/vendor/bladevalidator/`
 
-### Step 3: Add CSRF Exception
-
-**For Laravel 11 & 12** - Add to `bootstrap/app.php`:
-
-```php
-return Application::configure(basePath: dirname(__DIR__))
-    ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
-        health: '/up',
-    )
-    ->withMiddleware(function (Middleware $middleware) {
-        $middleware->validateCsrfTokens(except: [
-            '/bladevalidator/validate',
-        ]);
-    })
-    ->withExceptions(function (Exceptions $exceptions) {
-        //
-    })->create();
-```
-
-**For Laravel 9 & 10** - Add to `app/Http/Middleware/VerifyCsrfToken.php`:
-
-```php
-protected $except = [
-    '/bladevalidator/validate',
-];
-```
-
-> **Note:** The JavaScript automatically sends CSRF tokens. This exception just ensures smooth validation during live field checks.
-
 ## Quick Start
 
 ### 1. Create a FormRequest
